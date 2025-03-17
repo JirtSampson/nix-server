@@ -9,9 +9,9 @@
     };
 };
 
-# Open firewall for MQTT
+# Open firewall for MQTT and Music Assistant
  networking.firewall = {
-  allowedTCPPorts = [ 1883 ];
+  allowedTCPPorts = [ 1883 8095 ]; # Added 8095 for Music Assistant
 };
 
  services = {
@@ -62,6 +62,13 @@
     home-assistant = {
       enable = true;
       configDir = "/var/lib/hass/config";
+      # Add HACS support
+      package = (pkgs.home-assistant.override {
+        extraPackages = ps: with ps; [
+          # Add any Python dependencies needed for HACS
+          setuptools
+        ];
+      });
       extraComponents = [
         "default_config"
         "esphome"
@@ -158,4 +165,3 @@
    };
  };
 }
-

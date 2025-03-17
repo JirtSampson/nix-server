@@ -21,15 +21,24 @@
     };
   };
 
-    navidrome = {
-      enable = true;
-      openFirewall = true;
-      settings = {
-        MusicFolder = "/mnt/Media/Music";
-        Backup.Path =  "/mnt/Media/Music/Navidrome";
-        Backup.Count = 3;
-        Backup.Schedule = "0 18 * * *";
-        };
+  navidrome = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      MusicFolder = "/mnt/Media/Music";
+      Backup.Path = "/mnt/Media/Music/Navidrome";
+      Backup.Count = 3;
+      Backup.Schedule = "0 18 * **";
+      LastFM.ApiKey = "$LASTFM_API_KEY";
+      LastFM.Secret = "$LASTFM_SECRET";
+      Spotify.ID = "$SPOTIFY_ID";
+      Spotify.Secret = "$SPOTIFY_SECRET";
+      EnableTranscodingConfig = true;
+     };
    };
  };
+  # Add appropriate permissions for the secrets file
+  systemd.services.navidrome.serviceConfig = {
+    EnvironmentFile = "/var/lib/secrets/navidrome.env";
+  };
 }

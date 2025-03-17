@@ -23,6 +23,9 @@
       ./authentik.nix
       ./ha.nix
       ./frigate.nix
+    #  ./jellyfin.nix
+      ./github-webhook.nix
+      ./homestead-app.nix
     ];
   system.copySystemConfiguration = true;
   # Bootloader.
@@ -199,6 +202,8 @@
   mailutils
   libvirt
   virt-manager
+  webhook
+  openssl
   ];
 
   #SMTP
