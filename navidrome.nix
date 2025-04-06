@@ -26,9 +26,9 @@
     openFirewall = true;
     settings = {
       MusicFolder = "/mnt/Media/Music";
-      Backup.Path = "/mnt/Media/Music/Navidrome";
-      Backup.Count = 3;
-      Backup.Schedule = "0 18 * **";
+#      Backup.Path = "/mnt/Media/Music/Navidrome";
+#      Backup.Count = 3;
+#      Backup.Schedule = "0 18 * **";
       LastFM.ApiKey = "$LASTFM_API_KEY";
       LastFM.Secret = "$LASTFM_SECRET";
       Spotify.ID = "$SPOTIFY_ID";
