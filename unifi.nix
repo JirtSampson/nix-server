@@ -11,15 +11,15 @@
   };
 
 services = {
-#Commenting this section for now. Doesn't seem to be working via nix pkgs. Using docker for now and will revisit...
-#      unifi = {
-#        unifiPackage = pkgs.unifi;
-#        enable = true;
-#        openFirewall = true;
-#
+      unifi = {
+        unifiPackage = pkgs.unifi;
+        mongodbPackage = pkgs.mongodb-7_0;
+        enable = true;
+        openFirewall = true;
+
 #        initialJavaHeapSize = 1024;
 #        maximumJavaHeapSize = 1536;        
-# };
+ };
     nginx.virtualHosts = {
       "unifi.databahn.network" = {
         forceSSL = true;

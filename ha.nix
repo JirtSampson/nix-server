@@ -93,6 +93,8 @@
         "obihai"
         "ollama"
         "github"
+        "piper"
+        "wyoming"
       ];
       config = {
         default_config = {};

@@ -17,13 +17,13 @@
       ./audiobookshelf.nix
       ./plex.nix
       ./vaultwarden.nix
-      ./unifi.nix
+#      ./unifi.nix
       ./lubelogger.nix
       ./cf-tunnel.nix
       ./authentik.nix
       ./ha.nix
       ./frigate.nix
-    #  ./jellyfin.nix
+      ./jellyfin.nix
       ./github-webhook.nix
       ./homestead-app.nix
     ];
@@ -96,6 +96,9 @@
     LC_TIME = "en_GB.UTF-8";
   };
 
+  # Allow uploads of up to 4g for any proxied services
+  services.nginx.clientMaxBodySize = "4g";
+
   # Configure keymap in X11
   services.xserver = {
     layout = "us";
@@ -104,7 +107,10 @@
   
   #Enable VMs and docker
   virtualisation.docker.enable = true;
-  virtualisation.libvirtd.enable = true; 
+  
+  virtualisation.libvirtd = {
+  enable = true;
+  };
 
   ## Services
   # SSH
