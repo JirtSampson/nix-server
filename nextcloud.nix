@@ -38,7 +38,7 @@
       hostName = "nextcloud.databahn.network";
 
        # Need to manually increment with every major upgrade.
-      package = pkgs.nextcloud30;
+      package = pkgs.nextcloud31;
 
       # Let NixOS install and configure the database automatically.
       database.createLocally = true;

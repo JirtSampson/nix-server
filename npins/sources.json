@@ -1,0 +1,24 @@
+{
+  "pins": {
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixpkgs-unstable",
+      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-25.11pre807598.3866ad91cfc1/nixexprs.tar.xz",
+      "hash": "058xjx3955nirnfjp7h7493y13bgddyiqknsbi9qs0fw69x7lq3r"
+    },
+    "proxmox-nixos": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "SaumonNet",
+        "repo": "proxmox-nixos"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "bda8df28b6656843e459f166b04bc291bc495a29",
+      "url": "https://github.com/SaumonNet/proxmox-nixos/archive/bda8df28b6656843e459f166b04bc291bc495a29.tar.gz",
+      "hash": "02yhq6gk3pva7pzhgypdnsfl1wyy8yrwwhll05x92ywzkqc0if99"
+    }
+  },
+  "version": 5
+}

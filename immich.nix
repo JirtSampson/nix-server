@@ -26,6 +26,7 @@
     };
 
     nginx.virtualHosts = {
+      #No host needed for photoshare, that's using cloudflare tunnels directly
       "photos.databahn.network" = {
         forceSSL = true;
         enableACME = true;

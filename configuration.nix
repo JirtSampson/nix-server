@@ -26,6 +26,7 @@
       ./jellyfin.nix
       ./github-webhook.nix
       ./homestead-app.nix
+      ./proxmox.nix
     ];
   system.copySystemConfiguration = true;
   # Bootloader.
@@ -35,42 +36,53 @@
   boot.zfs.forceImportRoot = false;
   networking.hostId= "5ba06ca2";
   # Networking
-  networking.extraHosts =
-    ''
-      127.0.0.1 office.databahn.network
-      127.0.0.1 nextcloud.databahn.network
-    '';
+  networking.extraHosts = ''
+  127.0.0.1 office.databahn.network
+  127.0.0.1 nextcloud.databahn.network
+'';
+
   networking = {
-    hostName = "tiny-server"; # Define your hostname.
+    hostName = "tiny-server";
     useDHCP = false;
     useNetworkd = true;
+  };
+
+systemd.network.enable = true;
+
+systemd.network.netdevs."vmbr0" = {
+  netdevConfig = {
+    Name = "vmbr0";
+    Kind = "bridge";
+  };
+};
+
+systemd.network.networks = {
+  "10-builtin-ethernet" = {
+    enable = true;
+    name = "enp*";
+    DHCP = "no";
+    linkConfig.RequiredForOnline = "enslaved";
+    networkConfig = {
+      Bridge = "vmbr0";
+      LinkLocalAddressing = "no";
     };
-  systemd.network.enable = true;
-  systemd.network.networks = {
-    "10-builtin-ethernet" = {
-      enable = true;
-      name = "enp*";
-      address = [ "192.168.1.9/24" ];
-      gateway = [ "192.168.1.2" ];
-      DHCP = "no";
-      dns = [ "1.1.1.1" "1.0.0.1"];
-      linkConfig.RequiredForOnline = "yes";
-      networkConfig = {
-        DNSSEC = "yes";
-        DNSOverTLS = "yes";
-        LinkLocalAddressing = "no";
-      };
+  };
+
+  "20-bridge" = {
+    enable = true;
+    name = "vmbr0";
+    address = [ "192.168.1.9/24" ];
+    gateway = [ "192.168.1.2" ];
+    dns = [ "1.1.1.1" "1.0.0.1" ];
+    DHCP = "no";
+    linkConfig.RequiredForOnline = "routable";
+    networkConfig = {
+      DNSSEC = "yes";
+      DNSOverTLS = "yes";
+      LinkLocalAddressing = "no";
     };
-#     "15-builtin-wifi" = {
-#        enable = true;
-#        name = "wlp*";
-#        DHCP = "yes";
-#        #dns = [ "1.1.1.1" "1.0.0.1"];
-#        linkConfig.RequiredForOnline = "no";
-#        networkConfig = {
-#        };
-#      };
-    };
+  };
+};
   
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   # networkmanager enabled incase we want to use the wireless
@@ -108,10 +120,6 @@
   #Enable VMs and docker
   virtualisation.docker.enable = true;
   
-  virtualisation.libvirtd = {
-  enable = true;
-  };
-
   ## Services
   # SSH
   services.openssh.enable = true;
@@ -210,6 +218,7 @@
   virt-manager
   webhook
   openssl
+  npins
   ];
 
   #SMTP
