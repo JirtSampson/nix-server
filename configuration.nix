@@ -28,6 +28,13 @@
       ./homestead-app.nix
       ./proxmox.nix
     ];
+  
+  #Use newer unstable packages with an overlay when specified:
+  let
+  # Import unstable channel for select packages
+  unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
+  in
+
   system.copySystemConfiguration = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -48,6 +55,12 @@
   };
 
 systemd.network.enable = true;
+
+boot.kernel.sysctl = {
+  "net.bridge.bridge-nf-call-iptables" = 0;
+  "net.bridge.bridge-nf-call-ip6tables" = 0;
+  "net.ipv4.ip_forward" = 1;
+};
 
 systemd.network.netdevs."vmbr0" = {
   netdevConfig = {
@@ -221,7 +234,15 @@ systemd.network.networks = {
   npins
   ];
 
-  #SMTP
+  #ollama
+  services.ollama = {
+  enable = true;
+  package = unstable.ollama # stable version has bug with tools support needed for HA
+  acceleration = "cuda";  # or false for CPU
+  host = "0.0.0.0";
+  port = 11434;
+  };
+
   # Configure system-wide mail forwarding
   environment.etc."aliases" = {
     text = ''
@@ -310,7 +331,7 @@ systemd.network.networks = {
 
   # Open ports in the firewall.
 
-   networking.firewall.allowedTCPPorts = [ 443 ];
+   networking.firewall.allowedTCPPorts = [ 443 11434 ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
