@@ -4,6 +4,15 @@
 
 { config, pkgs, ... }:
 
+#Use newer unstable packages with an overlay when specified:
+
+let
+  unstable = import <nixos-unstable> {
+    config = {
+      allowUnfree = true;
+    };
+  };
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -27,14 +36,9 @@
       ./github-webhook.nix
       ./homestead-app.nix
       ./proxmox.nix
+      ./vikunja.nix
     ];
   
-  #Use newer unstable packages with an overlay when specified:
-  let
-  # Import unstable channel for select packages
-  unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
-  in
-
   system.copySystemConfiguration = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -232,13 +236,12 @@ systemd.network.networks = {
   webhook
   openssl
   npins
+  wl-clipboard
   ];
 
-  #ollama
   services.ollama = {
   enable = true;
-  package = unstable.ollama # stable version has bug with tools support needed for HA
-  acceleration = "cuda";  # or false for CPU
+  package = unstable.ollama; # stable version has bug with tools support needed for HA
   host = "0.0.0.0";
   port = 11434;
   };

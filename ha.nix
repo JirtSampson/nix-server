@@ -31,14 +31,14 @@
          '';
         acmeRoot = null;
         locations."/" = {
-          proxyPass = "http://localhost:8123";
+          proxyPass = "http://192.168.1.174:8123";
           proxyWebsockets = true;
           #extraConfig = ''
           #  '';
       };
         # Add a specific location for websocket connections
         locations."/api/websocket" = {
-        proxyPass = "http://127.0.0.1:8123/api/websocket";
+        proxyPass = "http://192.168.1.174:8123/api/websocket";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_set_header Upgrade $http_upgrade;
@@ -58,7 +58,8 @@
         }
       ];
     };
-
+# Replaced below with HAOS in Proxmox for better voice support
+/*
     home-assistant = {
       enable = true;
       configDir = "/var/lib/hass/config";
@@ -165,5 +166,6 @@
        };  
      };
    };
+*/
  };
 }
