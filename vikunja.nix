@@ -14,9 +14,33 @@
        enable = true;
        frontendScheme = "https";
        frontendHostname = "tasks.databahn.network";
-       #settings = {
-       #  interface = "192.168.1.9:3456";
-       #};
+       
+       # Mail configuration
+       settings = {
+         mailer = {
+           enabled = true;
+           host = "mail.gmx.com";  # GMX SMTP server
+           port = 587;
+           authtype = "plain";
+           username = "databahn@gmx.com";
+           # Password will be loaded from environment variable
+           fromemail = "databahn@gmx.com";
+           skiptlsverify = false;
+           forcessl = false;
+           queuelength = 100;
+           queuetimeout = 30;
+         };
+         
+         service = {
+           enableemailreminders = true;
+         };
+         
+         # Enable mail logging for debugging
+         log = {
+           mail = "stdout";
+           maillevel = "DEBUG";
+         };
+       };
     };
 
     nginx.virtualHosts = {
@@ -31,5 +55,8 @@
         extraConfig ="";           
       };
     };
-  };
+ };
+
+ # Add environment file to the systemd service
+ systemd.services.vikunja.serviceConfig.EnvironmentFile = "/var/lib/secrets/vikunja.env";
 }

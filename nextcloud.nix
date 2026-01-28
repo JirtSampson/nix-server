@@ -35,10 +35,11 @@
 
     nextcloud = {
       enable = true;
+      home = "/mnt/data/Nextcloud";
       hostName = "nextcloud.databahn.network";
 
        # Need to manually increment with every major upgrade.
-      package = pkgs.nextcloud31;
+      package = pkgs.nextcloud32;
 
       # Let NixOS install and configure the database automatically.
       database.createLocally = true;
@@ -55,7 +56,7 @@
       extraApps = with config.services.nextcloud.package.packages.apps; {
         # List of apps we want to install and are already packaged in
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/servers/nextcloud/packages/nextcloud-apps.json
-        inherit calendar contacts mail notes richdocuments tasks cookbook deck;
+        inherit calendar contacts mail notes richdocuments tasks cookbook deck sociallogin;
       };
 
       config = {

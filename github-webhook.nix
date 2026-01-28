@@ -20,6 +20,10 @@ security.sudo.extraRules = [
         command = "${pkgs.docker-compose}/bin/docker-compose";
         options = [ "NOPASSWD" ];
       }
+      {
+        command = "/run/current-system/sw/bin/chown";
+        options = [ "NOPASSWD" ];
+      }
     ];
   }
 ]; 
@@ -31,7 +35,7 @@ services = {
         enableACME = true;
         acmeRoot = null;
         locations."/" = {
-          proxyPass = "http://127.0.0.1:9000";
+          proxyPass = "http://127.0.0.1:9757";
         };
       };
     };
@@ -57,7 +61,8 @@ services = {
         }
       }
     ]
-  '';
+  ''
+;
   # Create the systemd service
   systemd.tmpfiles.rules = [
     "d /var/deploy 0750 webhook webhook -"
@@ -83,7 +88,7 @@ services = {
     wantedBy = [ "multi-user.target" ];
     
     serviceConfig = {
-      ExecStart = "${pkgs.webhook}/bin/webhook -hooks /etc/webhook/hooks.json -verbose -ip '127.0.0.1'";
+      ExecStart = "${pkgs.webhook}/bin/webhook -hooks /etc/webhook/hooks.json -verbose -ip '127.0.0.1' -port 9757";
       Restart = "always";
       User = "webhook";
       Group = "webhook";
@@ -111,7 +116,7 @@ services = {
   users.users.webhook = {
     isSystemUser = true;
     group = "webhook";
-    extraGroups = [ "secrets" ];
+    extraGroups = [ "secrets" "docker" ];
     description = "Webhook service user";
     home = "/var/deploy";
     createHome = true;

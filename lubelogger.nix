@@ -11,7 +11,7 @@
 
 services = {
     nginx.virtualHosts = {
-      "lubelogger.databahn.network" = {
+      "cars.databahn.network" = {
         forceSSL = true;
         enableACME = true;
         acmeRoot = null;

@@ -36,6 +36,28 @@
     ];
   };
 
+  # Auto-update service for Cloudflare Tunnel
+  systemd.services.cloudflaretunnel-update = {
+    script = ''
+      ${pkgs.docker}/bin/docker pull cloudflare/cloudflared:latest
+      ${pkgs.systemd}/bin/systemctl restart docker-cloudflaretunnel
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+  };
+
+  # Timer to check for updates daily
+  systemd.timers.cloudflaretunnel-update = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "1h";  # Spreads load, updates sometime within an hour of midnight
+    };
+  };
+
   # Root service
   # When started, this will automatically create all resources and start
   # the containers. When stopped, this will teardown all resources.

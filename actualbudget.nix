@@ -10,13 +10,19 @@
 };
 
  services = {
+  actual = {
+    enable = true;
+    settings = {
+      port = 5006;
+    };
+  };
   nginx.virtualHosts = {
-    "recipes.databahn.network" = {
+    "nances.databahn.network" = {
       forceSSL = true;
       enableACME = true;
       acmeRoot = null;
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8007";
+        proxyPass = "http://127.0.0.1:5006";
         proxyWebsockets = true;
       };
       extraConfig = ''
@@ -25,7 +31,7 @@
         proxy_send_timeout 600;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;
-        proxy_redirect http://127.0.0.1:8007 https://recipes.databahn.network;
+        proxy_redirect http://127.0.0.1:5006 https://nances.databahn.network;
         '';
       };
     };

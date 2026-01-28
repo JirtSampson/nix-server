@@ -1,32 +1,45 @@
 { self, config, lib, pkgs, ... }:
 {
- security.acme = {
-  acceptTerms = true;
-  defaults = {
-    email = "databahn@gmx.com";
-    dnsProvider = "cloudflare";
-    environmentFile = "/var/lib/secrets/certs.secret";
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      email = "databahn@gmx.com";
+      dnsProvider = "cloudflare";
+      environmentFile = "/var/lib/secrets/certs.secret";
     };
-};
+  };
 
- services = {
-    postgresql.extraPlugins = with pkgs.postgresql.pkgs; [ pgvector ];
+  services = {
     immich = {
       enable = true;
-      #host = "127.0.0.1";
       port = 2283;
-      mediaLocation = "/mnt/Media/Photos"; 
-      settings.server.externalDomain = "https://photoshare.databahn.network";
+      mediaLocation = "/mnt/Media/Photos";
+      
+      secretsFile = "/var/lib/secrets/immich.env";
+      
+      settings = {
+        server.externalDomain = "https://photos.databahn.network";
+        
+        oauth = {
+          enabled = true;
+          issuerUrl = "https://auth.databahn.network/application/o/immich/";
+          clientId = "7bMk2fHSxKnhErgvPBULuwoHmZISlQ7TurEHNFpE";
+          scope = "openid profile email";
+          buttonText = "Login with Authentik";
+          autoRegister = true;
+          autoLaunch = false;
+        };
+      };
     };
+    
     immich-public-proxy = {
-       enable = true;
-       port = 3000;
-       immichUrl = "http://[::1]:2283";
-       openFirewall = true;
+      enable = true;
+      port = 3000;
+      immichUrl = "http://[::1]:2283";
+      openFirewall = true;
     };
 
     nginx.virtualHosts = {
-      #No host needed for photoshare, that's using cloudflare tunnels directly
       "photos.databahn.network" = {
         forceSSL = true;
         enableACME = true;
@@ -41,7 +54,7 @@
           proxy_send_timeout 600;
           client_max_body_size 50000M;
           access_log syslog:server=unix:/dev/log,tag=immich;
-         '';           
+        '';           
       };
     };
   };

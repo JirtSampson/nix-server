@@ -4,4 +4,4 @@ To get up and running on NixOS:
  - `cd` to `/etc/nixos`
  - Clone the repo
  - Update any referenced .secret files
- - Run `sudo nixos rebuild switch`
+ - Run `sudo nixos-rebuild switch`

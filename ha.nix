@@ -11,10 +11,18 @@
 
 # Open firewall for MQTT and Music Assistant
  networking.firewall = {
-  allowedTCPPorts = [ 1883 8095 ]; # Added 8095 for Music Assistant
+  allowedTCPPorts = [ 1883 8095 2049 ];
+  allowedUDPPorts = [ 2049 ]; # NFS
 };
 
  services = {
+    # NFS server for Home Assistant backups
+    nfs.server = {
+      enable = true;
+      exports = ''
+        /mnt/ssd-spare/haos/backups 192.168.1.174(rw,sync,no_subtree_check,no_root_squash)
+      '';
+    };
     #nginx.commonHttpConfig = ''
     #  log_format debug_format '$remote_addr - $remote_user [$time_local] '
     #                       '"$request" $status $body_bytes_sent '
@@ -46,6 +54,30 @@
         '';
         };
       };
+      "ma.databahn.network" = {
+        forceSSL = true;
+        enableACME = true;
+        extraConfig = ''
+          proxy_buffering off;
+         '';
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://192.168.1.174:8095";
+          proxyWebsockets = true;
+          #extraConfig = ''
+          #  '';
+      };
+        # Add a specific location for websocket connections
+        locations."/api/websocket" = {
+        proxyPass = "http://192.168.1.174:8095/api/websocket";
+        proxyWebsockets = true;
+        extraConfig = ''
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+        '';
+        };
+      };
+
     };
 
     mosquitto = {

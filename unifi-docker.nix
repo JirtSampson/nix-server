@@ -14,9 +14,9 @@
     image = "jacobalberty/unifi:latest";
     environment = {
       DB_NAME = "unifi";
-      DB_URI = "mongodb://mongo/unifi";
-      STATDB_URI = "mongodb://mongo/unifi_stat";
-      TZ = "America/New York";
+      DB_URI = "mongodb://127.0.0.1/unifi";  # Changed from mongo to 127.0.0.1 since we're using host network
+      STATDB_URI = "mongodb://127.0.0.1/unifi_stat";  # Changed from mongo to 127.0.0.1
+      TZ = "America/New_York";  # Fixed space in timezone
     };
     volumes = [
       "/home/nix/docker/unifi/backup:/unifi/data/backup:rw"
@@ -27,23 +27,14 @@
       "unifi_log:/unifi/log:rw"
       "unifi_run:/var/run/unifi:rw"
     ];
-    ports = [
-      "3478:3478/udp"
-      "6789:6789/tcp"
-      "8080:8080/tcp"
-      "8443:8443/tcp"
-      "8880:8880/tcp"
-      "8843:8843/tcp"
-      "10001:10001/udp"
-    ];
+    # Removed ports section - not needed with host network
     dependsOn = [
       "unifi_mongo"
     ];
     user = "unifi";
     log-driver = "journald";
     extraOptions = [
-      "--network-alias=controller"
-      "--network=unifi_unifi"
+      "--network=host"  # Changed to host network
       "--sysctl=net.ipv4.ip_unprivileged_port_start=0"
     ];
   };
@@ -55,7 +46,6 @@
       RestartSteps = lib.mkOverride 500 9;
     };
     after = [
-      "docker-network-unifi_unifi.service"
       "docker-volume-unifi_cert.service"
       "docker-volume-unifi_data.service"
       "docker-volume-unifi_dir.service"
@@ -64,7 +54,6 @@
       "docker-volume-unifi_run.service"
     ];
     requires = [
-      "docker-network-unifi_unifi.service"
       "docker-volume-unifi_cert.service"
       "docker-volume-unifi_data.service"
       "docker-volume-unifi_dir.service"
@@ -121,6 +110,9 @@
     volumes = [
       "unifi_db:/data/db:rw"
       "unifi_dbcfg:/data/configdb:rw"
+    ];
+    ports = [
+      "127.0.0.1:27017:27017/tcp"  # Expose MongoDB only to localhost
     ];
     log-driver = "journald";
     extraOptions = [

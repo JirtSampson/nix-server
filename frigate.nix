@@ -1,6 +1,24 @@
 { config, pkgs, lib, ... }: {
   virtualisation.docker.enable = true;
-
+  
+  #virtualisation.oci-containers = {
+  #  backend = "docker";
+  #  containers = {
+  #    neolink = {
+  #      image = "quantumentangledandy/neolink";
+  #      volumes = [
+  #        "/var/lib/secrets/neolink.secret:/etc/neolink.toml:ro"
+  #      ];
+  #      extraOptions = [
+  #        "--network=host"
+  #      ];
+  #      # Optional: add debug logging
+  #      # environment = {
+  #      #   RUST_LOG = "debug";
+        # };
+      #};
+    #};
+  #};
   services.frigate = {
     enable = true;
     hostname = "cams.databahn.network";
@@ -16,7 +34,7 @@
         cam1 = {
           ffmpeg = {
             inputs = [{
-              path = "rtsp://192.168.1.9:8554/1";
+              path = "rtsp://192.168.1.174:8554/1";
               roles = ["record"];
             }];
           };
@@ -39,7 +57,7 @@
         cam2 = {
           ffmpeg = {
             inputs = [{
-              path = "rtsp://192.168.1.9:8554/2";
+              path = "rtsp://192.168.1.174:8554/2";
               roles = ["record"];
             }];
           };
@@ -62,7 +80,7 @@
         cam4 = {
           ffmpeg = {
             inputs = [{
-              path = "rtsp://192.168.1.9:8554/4";
+              path = "rtsp://192.168.1.174:8554/4";
               roles = ["record"];
             }];
           };
@@ -85,7 +103,7 @@
         chicken_cam = {
           ffmpeg = {
             inputs = [{
-              path = "rtsp://192.168.1.9:8554/chicken-cam";
+              path = "rtsp://192.168.1.174:8554/chicken-cam";
               roles = ["record"];
             }];
           };
@@ -104,6 +122,77 @@
             contour_area = 100;
           };
         };
+
+        driveway = {
+          ffmpeg = {
+            inputs = [{
+              path = "rtsp://192.168.1.9:8554/Driveway";
+              roles = ["record"];
+            }];
+          };
+          detect = {
+            enabled = false;
+          };
+          record = {
+            enabled = true;
+            retain = {
+              days = 2;
+              mode = "motion";
+            };
+          };
+          motion = {
+            threshold = 30;  # Might want to adjust for chicken movement
+            contour_area = 100;
+          };
+        };
+      
+        deck = {
+          ffmpeg = {
+            inputs = [{
+              path = "rtsp://192.168.1.9:8554/Deck";
+              roles = ["record"];
+            }];
+          };
+          detect = {
+            enabled = false;
+          };
+          record = {
+            enabled = true;
+            retain = {
+              days = 2;
+              mode = "motion";
+            };
+          };
+          motion = {
+            threshold = 30;  # Might want to adjust for chicken movement
+            contour_area = 100;
+          };
+        };
+
+        barn = {
+          ffmpeg = {
+            inputs = [{
+              path = "rtsp://192.168.1.9:8554/Barn";
+              roles = ["record"];
+            }];
+          };
+          detect = {
+            enabled = false;
+          };
+          record = {
+            enabled = true;
+            retain = {
+              days = 2;
+              mode = "motion";
+            };
+          };
+          motion = {
+            threshold = 30;  # Might want to adjust for chicken movement
+            contour_area = 100;
+          };
+        };
+
+
       };
     };
   };

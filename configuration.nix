@@ -1,11 +1,8 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
-
 #Use newer unstable packages with an overlay when specified:
-
 let
   unstable = import <nixos-unstable> {
     config = {
@@ -20,24 +17,49 @@ in
       # Include specific configs for each service we're hosting
       ./nextcloud.nix
       ./immich.nix
-      ./tandoor.nix
+#      ./tandoor.nix
       ./mealie.nix
       ./navidrome.nix
       ./audiobookshelf.nix
-      ./plex.nix
+#      ./plex.nix
       ./vaultwarden.nix
-#      ./unifi.nix
+      ./unifi.nix
       ./lubelogger.nix
       ./cf-tunnel.nix
       ./authentik.nix
       ./ha.nix
-      ./frigate.nix
+      ./scrypted.nix
       ./jellyfin.nix
       ./github-webhook.nix
       ./homestead-app.nix
       ./proxmox.nix
       ./vikunja.nix
+      ./actualbudget.nix
+      ./smb.nix
+      ./paperless.nix
+      ./guacamole.nix
+      ./beszel.nix
+      ./homarr.nix
+      ./backups.nix
+      ./crowdsec.nix
     ];
+  
+  
+  # Increase system-wide file descriptor limits
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "soft";
+      item = "nofile";
+      value = "65536";
+    }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nofile";
+      value = "65536";
+    }
+  ];
   
   system.copySystemConfiguration = true;
   # Bootloader.
@@ -45,34 +67,47 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
+  
+  zramSwap = {
+  enable = true;
+  algorithm = "lzo";      # zstd is faster
+  memoryPercent = 50;      # Use 50% of RAM for zram (adjust as needed)
+  priority = 10;           # Higher priority than disk swap
+  swapDevices = 1;         # Number of zram devices (1 is recommended)
+  };
   networking.hostId= "5ba06ca2";
   # Networking
   networking.extraHosts = ''
   127.0.0.1 office.databahn.network
   127.0.0.1 nextcloud.databahn.network
 '';
-
   networking = {
     hostName = "tiny-server";
     useDHCP = false;
     useNetworkd = true;
   };
-
+security.sudo.wheelNeedsPassword = false;
 systemd.network.enable = true;
-
+services.netbird.enable = true;
 boot.kernel.sysctl = {
   "net.bridge.bridge-nf-call-iptables" = 0;
   "net.bridge.bridge-nf-call-ip6tables" = 0;
   "net.ipv4.ip_forward" = 1;
 };
-
+services.resolved = {
+  enable = true;
+  dnssec = "allow-downgrade";
+  extraConfig = ''
+    DNS=192.168.1.2
+    FallbackDNS=1.1.1.1 8.8.8.8
+  '';
+};
 systemd.network.netdevs."vmbr0" = {
   netdevConfig = {
     Name = "vmbr0";
     Kind = "bridge";
   };
 };
-
 systemd.network.networks = {
   "10-builtin-ethernet" = {
     enable = true;
@@ -82,20 +117,18 @@ systemd.network.networks = {
     networkConfig = {
       Bridge = "vmbr0";
       LinkLocalAddressing = "no";
+      DNSDefaultRoute = true;
     };
   };
-
   "20-bridge" = {
     enable = true;
     name = "vmbr0";
     address = [ "192.168.1.9/24" ];
     gateway = [ "192.168.1.2" ];
-    dns = [ "1.1.1.1" "1.0.0.1" ];
+    dns = [ "192.168.1.2" ];
     DHCP = "no";
     linkConfig.RequiredForOnline = "routable";
     networkConfig = {
-      DNSSEC = "yes";
-      DNSOverTLS = "yes";
       LinkLocalAddressing = "no";
     };
   };
@@ -106,13 +139,10 @@ systemd.network.networks = {
   # networking.networkmanager.enable = true;
   # Use systemd for networking on the ethernet inferface
   
-
   # Set your time zone.
   time.timeZone = "America/New_York";
-
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
@@ -124,10 +154,10 @@ systemd.network.networks = {
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_GB.UTF-8";
   };
-
   # Allow uploads of up to 4g for any proxied services
   services.nginx.clientMaxBodySize = "4g";
-
+  # Bluetooth
+  hardware.bluetooth.enable = true;
   # Configure keymap in X11
   services.xserver = {
     layout = "us";
@@ -160,7 +190,6 @@ systemd.network.networks = {
           <txt-record>pv=1.0</txt-record>               <!-- HAP version                   -->
           <txt-record>id=67:3F:F0:5D:A8:58</txt-record> <!-- MAC (from `.homekit.state`)   -->
           <txt-record>c#=2</txt-record>                 <!-- config version                -->
-
           <!-- the following appear to be optional -->
           <txt-record>s#=1</txt-record>                 <!-- accessory state               -->
           <txt-record>ff=0</txt-record>                 <!-- unimportant                   -->
@@ -173,40 +202,6 @@ systemd.network.networks = {
      };
    };
   
-  # Tailscale
-  services.tailscale.enable = true;
-  # Create a oneshot job to authenticate to Tailscale
-  systemd.services.tailscale-autoconnect = {
-    description = "Automatic connection to Tailscale"; 
-                           
-    # Make sure tailscale is running before trying to connect to tailscale
-    after = [ "network-pre.target" "tailscale.service" ];
-    wants = [ "network-pre.target" "tailscale.service" ];
-    wantedBy = [ "multi-user.target" ];
-
-    # Set this service as a oneshot job
-    serviceConfig.Type = "oneshot";
-
-    # Have the job run this shell script
-    script = with pkgs; ''
-      # Wait for tailscaled to settle
-      sleep 2
-
-      # Check if we are already authenticated to tailscale
-      status="$(${tailscale}/bin/tailscale status -json | ${jq}/bin/jq -r .BackendState)"
-      if [ $status = "Running" ]; then # if so, then do nothing
-        exit 0
-      fi
-
-      # Otherwise authenticate with tailscale
-      ${tailscale}/bin/tailscale up --auth-key file:/var/lib/secrets/tailscale.secret
-    '';
-  };
-  
-  system.activationScripts.mkVPN = ''
-    ${pkgs.docker}/bin/docker network create --driver=macvlan --subnet=100.64.0.0/10 --gateway=100.64.0.1 --ip-range=100.64.0.2/24 -o parent=tailscale0 tailscale
-  '';
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.nix = {
     isNormalUser = true;
@@ -214,10 +209,17 @@ systemd.network.networks = {
     extraGroups = [ "networkmanager" "wheel" "docker" "libvirtd"];
     packages = with pkgs; [];
   };
-
+  users.users.samba = {
+    isSystemUser = true;
+    description = "Samba-only user for file sharing";
+    group = "samba";
+    home = "/var/empty";
+    createHome = false;
+    shell = pkgs.shadow + "/bin/nologin";
+  };
+  users.groups.samba = {};
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -237,15 +239,14 @@ systemd.network.networks = {
   openssl
   npins
   wl-clipboard
+  killall
   ];
-
   services.ollama = {
   enable = true;
   package = unstable.ollama; # stable version has bug with tools support needed for HA
   host = "0.0.0.0";
   port = 11434;
   };
-
   # Configure system-wide mail forwarding
   environment.etc."aliases" = {
     text = ''
@@ -298,7 +299,6 @@ systemd.network.networks = {
     '';
     mode = "0644";
   };
-
   services.smartd = {
     enable = true;
     notifications.mail.enable = true;
@@ -318,7 +318,6 @@ systemd.network.networks = {
   };
   # this option does not work; will return error
   services.zfs.zed.enableMail = false;
-
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -326,19 +325,14 @@ systemd.network.networks = {
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-
   # List services that you want to enable:
-
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-
   # Open ports in the firewall.
-
    networking.firewall.allowedTCPPorts = [ 443 11434 ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
-
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
@@ -346,5 +340,4 @@ systemd.network.networks = {
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.05"; # Did you read the comment?
-
 }

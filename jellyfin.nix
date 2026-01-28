@@ -11,12 +11,17 @@
 
  services = {
     nginx.virtualHosts = {
-      "video.databahn.network" = {
+      "jellyfin.databahn.network" = {
         forceSSL = true;
         enableACME = true;
         acmeRoot = null;
         locations."/" = {
           proxyPass = "http://127.0.0.1:8096";
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+          '';
         };
       };
     }; 
